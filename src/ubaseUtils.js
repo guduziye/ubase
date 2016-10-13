@@ -190,6 +190,7 @@ define(function(require, exports, module) {
       ubaseUtils.renderHeader();
       ubaseUtils.initFooter();
       ubaseUtils.resetJqueryHtmlMethod();
+      ubaseUtils.resetHoganRenderMethod();
       //ubaseUtils.autoRefreshAuthButton();
       utils.setHeaderCount(headerCount);
       if (miniMode || userParams['min'] == '1') {
@@ -214,6 +215,21 @@ define(function(require, exports, module) {
           ubaseUtils.setContentMinHeight($('body').children('main').children('article'));
         });
       });
+    },
+
+    // 封装hogan的render方法 加入国际化的功能
+    resetHoganRenderMethod: function() {
+      var originRender = Hogan.Template.prototype.render;
+
+      Hogan.Template.prototype.render = function(model, partials, indent) {
+        if (model) {
+          model.WIS_LABEL = window.WIS_LABEL;
+        } else {
+          model = { WIS_LABEL: window.WIS_LABEL };
+        }
+
+        return originRender.call(this, model, partials, indent);
+      }
     },
 
     initEvaluate: function() {

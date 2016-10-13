@@ -2779,6 +2779,7 @@ define('ubaseUtils', [
             ubaseUtils.renderHeader();
             ubaseUtils.initFooter();
             ubaseUtils.resetJqueryHtmlMethod();
+            ubaseUtils.resetHoganRenderMethod();
             utils.setHeaderCount(headerCount);
             if (miniMode || userParams['min'] == '1') {
                 utils.miniMode();
@@ -2799,6 +2800,17 @@ define('ubaseUtils', [
                     ubaseUtils.setContentMinHeight($('body').children('main').children('article'));
                 });
             });
+        },
+        resetHoganRenderMethod: function () {
+            var originRender = Hogan.Template.prototype.render;
+            Hogan.Template.prototype.render = function (model, partials, indent) {
+                if (model) {
+                    model.WIS_LABEL = window.WIS_LABEL;
+                } else {
+                    model = { WIS_LABEL: window.WIS_LABEL };
+                }
+                return originRender.call(this, model, partials, indent);
+            };
         },
         initEvaluate: function () {
             var rootPath = utils.getConfig('APP_INFO_ROOT_PATH');
