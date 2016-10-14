@@ -2636,11 +2636,13 @@ define('ubaseUtils', [
     'module',
     'configUtils',
     'router',
-    'utils'
+    'utils',
+    'log'
 ], function (require, exports, module) {
     var configUtils = require('configUtils');
     var router = require('router');
     var utils = require('utils');
+    var log = require('log');
     var req = require;
     var ubaseUtils = {
         getModules: function () {
@@ -2802,6 +2804,7 @@ define('ubaseUtils', [
             });
         },
         resetHoganRenderMethod: function () {
+            var templateAfterRender = utils.getConfig('TEMPLATE_AFTER_RENDER');
             var originRender = Hogan.Template.prototype.render;
             Hogan.Template.prototype.render = function (model, partials, indent) {
                 if (model) {
@@ -2809,7 +2812,15 @@ define('ubaseUtils', [
                 } else {
                     model = { WIS_LABEL: window.WIS_LABEL };
                 }
-                return originRender.call(this, model, partials, indent);
+                var html = originRender.call(this, model, partials, indent);
+                if (templateAfterRender) {
+                    if (typeof templateAfterRender == 'function') {
+                        html = templateAfterRender(html);
+                    } else {
+                        log.error('TEMPLATE_AFTER_RENDER是hogan模板渲染后的回调\uFF0C需要为函数');
+                    }
+                }
+                return html;
             };
         },
         initEvaluate: function () {
