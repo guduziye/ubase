@@ -127,6 +127,7 @@ define(function(require, exports, module) {
       }
       subViewConfig.__eventBinded = false;
       this._subView.push(subViewConfig);
+      initEventMap(subViewConfig);
       if (subViewConfig.viewName && typeof(subViewConfig.viewName) === 'string') {
         this.subView[subViewConfig.viewName] = subViewConfig;
       }
@@ -136,11 +137,18 @@ define(function(require, exports, module) {
     }
   };
 
+  function initEventMap(app) {
+    if (app.eventMap && 　typeof(app.eventMap) === 'function') {
+      app.eventMap = app.eventMap();
+    }
+  }
+
   function baseView(config, path) {
     var app = new viewCore();
     app._routerParams = path;
     $.extend(app, config);
     availableElement.off();
+    initEventMap(app);
     app.initialize();
     app._coreBindEvent();
   }
