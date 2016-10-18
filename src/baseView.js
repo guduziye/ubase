@@ -36,7 +36,8 @@ define(function(require, exports, module) {
         var realElem = null,
           event = null;
         if (!self.eventMap[elem]) {
-          log.error('eventMap中选择器“' + elem + '”的事件处理函数未定义！！！');
+          log.error('eventMap中选择器“' + elem + '”的事件处理函数未定义！！！' + (self._eventMapFunction ? ', 错误上下文：' + self._eventMapFunction.toString() : ''));
+          return;
         }
         self.__checkEventConflict(elem);
         if (elem.indexOf('@') > 0) {
@@ -96,7 +97,8 @@ define(function(require, exports, module) {
           var realElem = null;
           var event = null;
           if (!subViewConfig.eventMap[elem]) {
-            log.error('eventMap中选择器“' + elem + '”的事件处理函数未定义！！！');
+            log.error('eventMap中选择器“' + elem + '”的事件处理函数未定义！！！' + (self._eventMapFunction ? ', 错误上下文：' + subViewConfig._eventMapFunction.toString() : ''));
+            return;
           }
           self.__checkEventConflict(elem);
           if (elem.indexOf('@') > 0) {
@@ -139,6 +141,7 @@ define(function(require, exports, module) {
 
   function initEventMap(app) {
     if (app.eventMap && 　typeof(app.eventMap) === 'function') {
+      app._eventMapFunction = app.eventMap;
       app.eventMap = app.eventMap();
     }
   }
@@ -147,6 +150,7 @@ define(function(require, exports, module) {
     var app = new viewCore();
     app._routerParams = path;
     $.extend(app, config);
+    app._originUserConfig = config;
     availableElement.off();
     initEventMap(app);
     app.initialize();

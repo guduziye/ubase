@@ -3015,7 +3015,8 @@ define('baseView', [
             _.each(_.keys(this.eventMap), function (elem) {
                 var realElem = null, event = null;
                 if (!self.eventMap[elem]) {
-                    log.error('eventMap中选择器\u201C' + elem + '\u201D的事件处理函数未定义\uFF01\uFF01\uFF01');
+                    log.error('eventMap中选择器\u201C' + elem + '\u201D的事件处理函数未定义\uFF01\uFF01\uFF01' + (self._eventMapFunction ? ', 错误上下文\uFF1A' + self._eventMapFunction.toString() : ''));
+                    return;
                 }
                 self.__checkEventConflict(elem);
                 if (elem.indexOf('@') > 0) {
@@ -3066,7 +3067,8 @@ define('baseView', [
                     var realElem = null;
                     var event = null;
                     if (!subViewConfig.eventMap[elem]) {
-                        log.error('eventMap中选择器\u201C' + elem + '\u201D的事件处理函数未定义\uFF01\uFF01\uFF01');
+                        log.error('eventMap中选择器\u201C' + elem + '\u201D的事件处理函数未定义\uFF01\uFF01\uFF01' + (self._eventMapFunction ? ', 错误上下文\uFF1A' + subViewConfig._eventMapFunction.toString() : ''));
+                        return;
                     }
                     self.__checkEventConflict(elem);
                     if (elem.indexOf('@') > 0) {
@@ -3105,6 +3107,7 @@ define('baseView', [
     };
     function initEventMap(app) {
         if (app.eventMap && typeof app.eventMap === 'function') {
+            app._eventMapFunction = app.eventMap;
             app.eventMap = app.eventMap();
         }
     }
@@ -3112,6 +3115,7 @@ define('baseView', [
         var app = new viewCore();
         app._routerParams = path;
         $.extend(app, config);
+        app._originUserConfig = config;
         availableElement.off();
         initEventMap(app);
         app.initialize();

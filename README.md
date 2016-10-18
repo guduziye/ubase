@@ -79,11 +79,13 @@ app/
 ### 事件绑定方式
 模块中的所有事件处理都通过eventMap来维护，eventMap中key为jquery选择器，value为绑定的事件处理函数，默认绑定的是click事件，如需绑定其他事件，可以在key后@相应的事件. 在事件处理函数中可通过event.currentTarget获取到对应的dom元素
 ```javascript
-this.eventMap = {
-    "#retirementInfoTable .j-row-edit": this.editCb,
-    "#advancedQueryPlaceholder@search": this.searchCb,
-    ".index-tip@mouseover": this.mouseoverCb
-};
+eventMap: function() {
+    return {
+        "#retirementInfoTable .j-row-edit": this.editCb,
+        "#advancedQueryPlaceholder@search": this.searchCb,
+        ".index-tip@mouseover": this.mouseoverCb
+    }
+},
 ```
 ```javascript
 editCb: function(event){
@@ -139,12 +141,6 @@ initialize: function() {
         default:
             this.initIndexPage();
     }
-
-    this.eventMap = {
-        '.znbmsh-index-button-edit': this.showDetailDialogCb,
-        '.dialog-content-item-kyxm-pass': this.passCb,
-        '.znbmsh-dialog-button-edit': this.dialogEditCb
-    };
 },
 ```
 
