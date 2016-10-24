@@ -70,7 +70,7 @@ define(function(require, exports, module) {
                         ubaseUtils.hideLoading();
                       });
                     } catch (error) {
-                      console.log(error)
+                      log.error(error)
                     }
                     locationHash = location.hash;
                     currentRoute = currentModule.originRoute;
@@ -86,7 +86,7 @@ define(function(require, exports, module) {
     },
 
     afterFrameworkInit: function() {
-      var afterInit = utils.getConfig('CALLBACK');
+      var afterInit = utils.getConfig('CALLBACK') || utils.getConfig('AFTER_FRAMEWORK_INIT');
       if (afterInit) {
         afterInit();
       }
