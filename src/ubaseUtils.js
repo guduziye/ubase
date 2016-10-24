@@ -1,4 +1,4 @@
-define(function(require, exports, module) {
+define(function (require, exports, module) {
 
   var configUtils = require('configUtils');
   var router = require('router');
@@ -7,45 +7,46 @@ define(function(require, exports, module) {
   var req = require;
 
   var ubaseUtils = {
-    getModules: function() {
+    getModules: function () {
       var modules = utils.getConfig('MODULES');
 
-      _.each(modules, function(module) {
+      _.each(modules, function (module) {
         if (module.originRoute) {
           return;
         }
-        module.originRoute = module.route;
-        module.route = module.route.indexOf('/') > 0 ? module.route.substr(0, module.route.indexOf('/')) : module.route;
+        module.isOpenNewPage = module.isOpenNewPage || (module.url ? true : false);
+        module.originRoute = module.route || module.url;
+        module.route = (module.route && !module.isOpenNewPage) ? (module.route.indexOf('/') > 0 ? module.route.substr(0, module.route.indexOf('/')) : module.route) : '';
       });
 
       return modules;
     },
-    getSortedModules: function() {
+    getSortedModules: function () {
       var modules = this.getModules();
 
-      modules = _.sortBy(modules, function(obj) {
+      modules = _.sortBy(modules, function (obj) {
         return -obj.route.length;
       });
 
       return modules;
     },
 
-    showLoading: function() {
+    showLoading: function () {
       $('.app-loading').addClass('app-loading-show');
     },
 
-    hideLoading: function() {
+    hideLoading: function () {
       $('.app-loading').removeClass('app-loading-show');
     },
 
-    cleanMainArea: function() {
+    cleanMainArea: function () {
       $('body>main').empty();
     },
 
     /**
      * 生成首页html布局
      */
-    genMainLayout: function() {
+    genMainLayout: function () {
       var layout = '<div id="headerPlaceholder"></div>' +
         '<div class="sc-container-outerFrame">' +
         '<div class="sc-container bh-border-h" bh-container-role="container">' +
@@ -58,27 +59,31 @@ define(function(require, exports, module) {
       $('body').prepend(layout);
     },
 
-    getFixedMainLayout: function() {
+    getFixedMainLayout: function () {
       var layout = '<header></header><main></main><footer></footer>';
 
       $('body').prepend(layout);
     },
 
-    getFirstModules: function() {
+    getFirstModules: function () {
       var modules = this.getModules();
       var appEntry = utils.getConfig('APP_ENTRY');
       if (_.isEmpty(modules)) {
         return '';
       }
 
-      return (appEntry || modules[0].originRoute).trim();
+      // 排除modules中直接配置url的module
+      var firstModule = _.find(modules, function (module) {
+        return !module.isOpenNewPage
+      });
+      return (appEntry || firstModule.originRoute).trim();
     },
 
     /**
      * 渲染头部，专用于简化版框架
      * @return {[type]} [description]
      */
-    renderHeader: function() {
+    renderHeader: function () {
       var headerData = utils.getConfig('HEADER') || {};
       var modules = this.getModules() || [];
       var appEntry = ubaseUtils.getFirstModules();
@@ -94,16 +99,16 @@ define(function(require, exports, module) {
       }
 
       for (var i = 0; i < modules.length; i++) {
-        (function() {
+        (function () {
           var navItem = {
             title: modules[i].title,
-            route: modules[i].route,
+            route: modules[i].route || modules[i].url,
             hide: modules[i].hide,
             isOpenNewPage: modules[i].isOpenNewPage,
             href: '#/' + modules[i].originRoute
           };
 
-          if (modules[i].isOpenNewPage) {
+          if (modules[i].isOpenNewPage || modules[i].url) {
             var sysIndex = location.href.indexOf('/sys/');
             var origin = location.href.substr(0, sysIndex);
             navItem.href = modules[i].originRoute.replace(/\{context\}/, origin);
@@ -143,14 +148,14 @@ define(function(require, exports, module) {
       $('body').children('header').bhHeader(headerData);
     },
 
-    initFooter: function() {
+    initFooter: function () {
       var text = utils.getConfig('FOOTER_TEXT');
       $('body').children('footer').bhFooter({
         text: text || "版权信息：© 2015 江苏金智教育信息股份有限公司 苏ICP备10204514号"
       });
     },
 
-    setContentMinHeight: function($setContainer) {
+    setContentMinHeight: function ($setContainer) {
       if (!$setContainer) {
         return;
       }
@@ -164,13 +169,13 @@ define(function(require, exports, module) {
       }
     },
 
-    getUserParams: function() {
+    getUserParams: function () {
       var params = {};
       var search = location.search && location.search.substr(1);
 
       if (search) {
         var paramsArr = search.split('&');
-        _.each(paramsArr, function(item) {
+        _.each(paramsArr, function (item) {
           var kv = item.split('=');
           if (kv.length == 2) {
             params[kv[0]] = kv[1];
@@ -181,7 +186,7 @@ define(function(require, exports, module) {
       return params;
     },
 
-    initFramework: function() {
+    initFramework: function () {
       var miniMode = utils.getConfig('MINI_MODE');
       var headerCount = utils.getConfig('HEADER_COUNT');
       var bodyNiceScroll = utils.getConfig('NICESCROLL');
@@ -210,8 +215,8 @@ define(function(require, exports, module) {
       }
       $(".app-ajax-loading").jqxLoader({});
       ubaseUtils.setContentMinHeight($('body').children('main').children('article'));
-      $(function() {
-        $(window).resize(function() {
+      $(function () {
+        $(window).resize(function () {
           //给外层的container添加最小高度
           ubaseUtils.setContentMinHeight($('body').children('main').children('article'));
         });
@@ -219,15 +224,15 @@ define(function(require, exports, module) {
     },
 
     // 封装hogan的render方法 加入国际化的功能， 对render方法添加TEMPLATE_AFTER_RENDER回调
-    resetHoganRenderMethod: function() {
+    resetHoganRenderMethod: function () {
       var templateAfterRender = utils.getConfig('TEMPLATE_AFTER_RENDER');
       var originRender = Hogan.Template.prototype.render;
 
-      Hogan.Template.prototype.render = function(model, partials, indent) {
+      Hogan.Template.prototype.render = function (model, partials, indent) {
         if (model) {
           model.WIS_LABEL = window.WIS_LABEL;
         } else {
-          model = { WIS_LABEL: window.WIS_LABEL };
+          model = {WIS_LABEL: window.WIS_LABEL};
         }
 
         var html = originRender.call(this, model, partials, indent);
@@ -244,7 +249,7 @@ define(function(require, exports, module) {
       }
     },
 
-    initEvaluate: function() {
+    initEvaluate: function () {
       var rootPath = utils.getConfig('APP_INFO_ROOT_PATH');
       var appId = utils.getConfig('APP_ID');
       var ampUserId = sessionStorage.getItem("ampUserId");
@@ -258,12 +263,12 @@ define(function(require, exports, module) {
       });
     },
 
-    configRouter: function() {
+    configRouter: function () {
       var self = this;
       var preRoute = null;
       router.configure({
         delimiter: '/',
-        after: function() {
+        after: function () {
           var currentModule = self.getCurrentModule();
           var currentRoute = currentModule && currentModule.originRoute;
           if (preRoute == currentRoute) {
@@ -278,7 +283,7 @@ define(function(require, exports, module) {
           $body.children('[bh-footer-role=footer]').removeAttr('style');
           self.setContentMinHeight($body.children('main').children('article'));
           self.reselectHeaderNav();
-          setTimeout(function() {
+          setTimeout(function () {
             $body.children('main').children('article[bh-layout-role=navLeft]').children("section").css("width", "initial");
           }, 10);
           try {
@@ -291,7 +296,7 @@ define(function(require, exports, module) {
       });
     },
 
-    reselectHeaderNav: function() {
+    reselectHeaderNav: function () {
       var currentModule = this.getCurrentModule();
       var modules = this.getModules();
 
@@ -309,7 +314,7 @@ define(function(require, exports, module) {
       });
     },
 
-    getCurrentModule: function() {
+    getCurrentModule: function () {
       var hash = window.location.hash;
       hash = hash.replace('\#\/', '');
       var modules = this.getModules();
@@ -325,11 +330,11 @@ define(function(require, exports, module) {
       return currentModule;
     },
 
-    resetJqueryHtmlMethod: function() {
+    resetJqueryHtmlMethod: function () {
       $.fn.oldHtmlFn = $.fn.html;
       var self = this;
 
-      $.fn.html = function(content, resetFrameworkHeight) {
+      $.fn.html = function (content, resetFrameworkHeight) {
         var res = null;
         if (content !== undefined) {
           res = $(this).oldHtmlFn(content);
@@ -345,31 +350,31 @@ define(function(require, exports, module) {
       }
     },
 
-    autoRefreshAuthButton: function() {
+    autoRefreshAuthButton: function () {
       var self = this;
-      var debounced = _.debounce(function() {
+      var debounced = _.debounce(function () {
         self.setButtonAuth();
       }, 50);
-      $(document).bind('DOMNodeInserted', function() {
+      $(document).bind('DOMNodeInserted', function () {
         debounced();
       });
-      $(document).bind('DOMNodeRemoved', function() {
+      $(document).bind('DOMNodeRemoved', function () {
         debounced();
       });
     },
 
     // unuse
-    resetJqueryAppendMethod: function() {
+    resetJqueryAppendMethod: function () {
       var self = this;
-      var debounced = _.debounce(function() {
+      var debounced = _.debounce(function () {
         self.setButtonAuth();
       }, 500);
       _.each(['append', 'prepend', 'appendTo', 'prependTo', 'after',
         'before', 'insertAfter', 'insertBefore', 'wrap', 'wrapAll', 'wrapInner', 'replaceAll', 'replaceWith'
-      ], function(method) {
+      ], function (method) {
         $.fn['old' + method + 'Fn'] = $.fn[method];
 
-        $.fn[method] = function(content) {
+        $.fn[method] = function (content) {
           $(this)['old' + method + 'Fn'](content);
           self.setButtonAuth();
           return $(this);
@@ -377,25 +382,25 @@ define(function(require, exports, module) {
       })
     },
 
-    setButtonAuth: function() {
+    setButtonAuth: function () {
       var currentModule = this.getCurrentModule();
       var authControlledButtons = $('[manageAuth="Y"]');
       var buttons = currentModule && currentModule.buttons;
 
-      _.each(authControlledButtons, function(item) {
+      _.each(authControlledButtons, function (item) {
         if (!_.includes(buttons, $(item).attr('data-auth') || $(item).attr('id'))) {
           $(item).remove();
         }
       })
     },
 
-    getIEVersion: function() {
+    getIEVersion: function () {
       var version = null;
       if (navigator.userAgent.indexOf("MSIE") > 0) {
-        if (navigator.userAgent.indexOf("MSIE 6.0") > 0) {    
+        if (navigator.userAgent.indexOf("MSIE 6.0") > 0) {
           version = 6;
         }
-        if (navigator.userAgent.indexOf("MSIE 7.0") > 0) {         
+        if (navigator.userAgent.indexOf("MSIE 7.0") > 0) {
           version = 7;
         }
         if (navigator.userAgent.indexOf("MSIE 9.0") > 0 && !window.innerWidth) {
