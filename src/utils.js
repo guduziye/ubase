@@ -231,7 +231,7 @@ define(function(require, exports, module) {
               window.location.href = resp.loginURL;
             }
           } catch (e) {
-            console.log(e);
+            log.error(e);
           }
           $(".app-ajax-loading").jqxLoader('close');
           deferred.resolve(resp);
