@@ -13,6 +13,7 @@
 * [echarts图表](#echarts)
 * [APP嵌入模式](#embed)
 * [组件使用实例](http://res.wisedu.com/component)
+* [config.js配置项说明](#config)
 * [技术选型](#technology)
 * [常见问题](#faq)
 
@@ -84,7 +85,7 @@ eventMap: function() {
         "#retirementInfoTable .j-row-edit": this.editCb,
         "#advancedQueryPlaceholder@search": this.searchCb,
         ".index-tip@mouseover": this.mouseoverCb
-    }
+    };
 },
 ```
 ```javascript
@@ -167,6 +168,72 @@ utils.getEcharts().done(function(ec) {
 http://res.wisedu.com/FE/HRMS/个人填报单页版/index.html?min=1#/txsbb
 ```
 
+## config.js配置项说明
+```javascript
+{
+    "FE_DEBUG_MODE": true, // 前端部门开发模式, 业务线对接后端真实接口时，删除该配置项
+    "DEBUG_MODE": true, // 业务线转侧时删除该配置项（注：目前未使用）
+    "RESOURCE_SERVER": "http://res.wisedu.com", //  资源服务器地址
+    "THEME": "blue", // 主题 blue purple
+    'APP_ENTRY': "", // APP默认路由
+    "APP_TITLE": "教职工招聘审核", // APP标题
+    "FOOTER_TEXT": "", // 应用底部说明文本
+    "APP_VERSION": "", // app的版本号 防止前端业务js和html文件缓存
+    "MODULES": [{ // 需要展示的模块
+        title: "体检管理", // 模块名称
+        route: "tjgl",// 模块路由 url和route二选一
+    }, { 
+        title: "笔试", 
+        url:'http://www.baidu.com' // 配置url时，点击会在新tab页中打开， url和route二选一
+    }, {
+        title: "面试",
+        route: "mianshi",
+        buttons:['addbutton','deletebuton'] // 按钮级授权 （html中需要授权控制的按钮上添加属性data-auth，如<button data-auth="addbutton">添加</button>）
+    }, {
+        title: "招聘录用",
+        route: "zply",
+        hide: true // 配置该模块是否在页面中显示
+    }, {
+         title: "学校审核",
+         route: "sh/xxsh", // 多个模块可以复用同一份代码
+     }, {
+          title: "学院审核",
+          route: "sh/xysh",// 多个模块可以复用同一份代码
+      }],
+    "CONFIG_READY": function(config){ // 对配置的config在使用前通过该回调干预做进一步处理
+        ... 
+    },
+    "THIRD_PARTY_PLUGIN": { // 配置第三方公共模块
+        'jquery': 'http://cdn.bootcss.com/jquery/3.1.1/jquery.js',
+        'hrmsUtils': './hrmsUtils.js'
+    },
+    "AFTER_FRAMEWORK_INIT": function(){ // 外层框架初始化结束，进入模块前执行的回调
+    
+    },
+    "HEADER": {// 头部配置
+        "dropMenu": [{
+            "text": "就业资讯师",
+            "active": true
+        }, {
+            "text": "就业管理人员"
+        }],
+        "logo": "./public/images/logo.png",
+        "icons": ["icon-apps"],
+        "userImage": "./public/images/user.png",
+        "userInfo": {
+            "image": "http://res.wisedu.com/scenes/public/images/demo/user1.png",
+            "info": [
+                "01118888",
+                "张晓明  男",
+                "南京理工大学  信息化办公室",
+                "zhangxm@wisedu.com",
+                "18888888888"
+            ],
+            "logoutHref": "javascript:void(0);"
+        }
+    }
+}
+```
 ## 技术选型
 
 * 模块化：requirejs
